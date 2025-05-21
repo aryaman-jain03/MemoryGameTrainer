@@ -107,7 +107,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Session state defaults
+# Initialize session state variables if not present
 if "sequence" not in st.session_state:
     st.session_state.sequence = []
 if "level" not in st.session_state:
@@ -122,8 +122,12 @@ if "sequence_type" not in st.session_state:
     st.session_state.sequence_type = "Numbers"
 if "feedback" not in st.session_state:
     st.session_state.feedback = ""
+if "display_step" not in st.session_state:
+    st.session_state.display_step = 0
+if "user_input" not in st.session_state:
+    st.session_state.user_input = ""
 
-# Reset state function
+# Reset game state
 def reset_game():
     st.session_state.level = 1
     st.session_state.score = 0
@@ -131,27 +135,32 @@ def reset_game():
     st.session_state.input_phase = False
     st.session_state.sequence_shown = False
     st.session_state.feedback = ""
+    st.session_state.display_step = 0
+    st.session_state.user_input = ""
 
-# Countdown function before showing sequence
-def countdown(seconds=3):
-    countdown_ph = st.empty()
-    for i in range(seconds, 0, -1):
-        countdown_ph.markdown(f"<h4>Memorize in {i}...</h4>", unsafe_allow_html=True)
-        time.sleep(1)
-    countdown_ph.empty()
-
-# Display sequence
+# Async display sequence with rerun, showing countdown and sequence progressively
 def display_sequence(seq):
-    st.session_state.sequence_shown = True
-    countdown(3)
-    placeholder = st.empty()
-    placeholder.markdown(f"<div class='sequence-display'>{'   '.join(seq)}</div>", unsafe_allow_html=True)
-    time.sleep(len(seq) * 1.5)
-    placeholder.empty()
-    st.session_state.sequence_shown = False
-    st.session_state.input_phase = True
+    # Step 0-2: countdown 3..2..1
+    if st.session_state.display_step < 3:
+        st.markdown(f"<h4>Memorize in {3 - st.session_state.display_step}...</h4>", unsafe_allow_html=True)
+        time.sleep(1)
+        st.session_state.display_step += 1
+        st.experimental_rerun()
 
-# Main app
+    # Step 3: show the sequence for a duration based on length
+    elif st.session_state.display_step == 3:
+        st.markdown(f"<div class='sequence-display'>{'   '.join(seq)}</div>", unsafe_allow_html=True)
+        time.sleep(len(seq) * 1.5)
+        st.session_state.display_step += 1
+        st.experimental_rerun()
+
+    # Step 4: done showing sequence, switch to input phase
+    else:
+        st.session_state.display_step = 0
+        st.session_state.sequence_shown = False
+        st.session_state.input_phase = True
+        st.session_state.user_input = ""  # clear input box for new level
+
 def main():
     st.title("🧠 Memory Game Trainer")
 
@@ -175,21 +184,29 @@ def main():
     st.sidebar.markdown("[Source Code](https://github.com/your-repo)")
 
     # Scoreboard
-    st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
+    st.markdown(
+        f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", 
+        unsafe_allow_html=True
+    )
 
-    # Game loop
+    # Game loop: generate and display sequence if not in input phase or sequence shown
     if not st.session_state.input_phase and not st.session_state.sequence_shown:
         st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
         st.session_state.feedback = ""
+        st.session_state.sequence_shown = True
         display_sequence(st.session_state.sequence)
 
+    # Show input box only when input phase is active
     if st.session_state.input_phase:
         user_input = st.text_input(
             "Enter the sequence (space-separated):",
             placeholder="Type your sequence here...",
             key="user_input",
+            value=st.session_state.user_input,
             max_chars=150,
         )
+        st.session_state.user_input = user_input  # sync session state input
+
         if st.button("✅ Submit"):
             entered = user_input.strip().lower().replace(",", " ").split()
             correct = [e.lower() for e in st.session_state.sequence]
@@ -200,21 +217,26 @@ def main():
                 st.session_state.input_phase = False
                 st.session_state.feedback = "🎉 Correct! Leveling up..."
                 time.sleep(1.2)
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
                 st.session_state.input_phase = False
                 st.session_state.level = 1
                 st.session_state.score = 0
+                time.sleep(1.5)
+                st.experimental_rerun()
+
     else:
         st.write("⏳ Please wait, sequence is being shown...")
 
+    # Show feedback message if any
     if st.session_state.feedback:
         st.markdown(f"**{st.session_state.feedback}**")
 
+    # Restart game button
     if st.button("🔄 Restart Game"):
         reset_game()
-        st.rerun()
+        st.experimental_rerun()
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
