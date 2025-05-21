@@ -152,9 +152,11 @@ def handle_submit():
     correct_seq = [str(x).lower() for x in st.session_state.sequence]
 
     if st.session_state.sequence_type == "Numbers":
-        entered_seq = list(user_raw)  # e.g., '314' -> ['3', '1', '4']
+        # Remove all whitespace, then split into characters
+        user_raw = ''.join(user_raw.split())  # removes all spaces/newlines
+        entered_seq = list(user_raw)
     else:
-        entered_seq = user_raw.lower().replace(",", " ").split()  # e.g., 'cat dog'
+        entered_seq = user_raw.lower().replace(",", " ").split()  # handles words like 'cat dog'
 
     if entered_seq == correct_seq:
         st.session_state.score += 10 * st.session_state.level
@@ -168,6 +170,7 @@ def handle_submit():
     st.session_state.input_phase = False
     st.session_state.user_input_widget = ""
     time.sleep(1.2)
+
 
 
 def start_game_callback():
