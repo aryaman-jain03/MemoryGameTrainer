@@ -3,7 +3,7 @@ import time
 from utils import generate_sequence # Ensure utils.py exists and has this function
 
 # Set page config
-st.set_set_page_config(
+st.set_page_config(
     page_title="Memory Game Trainer",
     page_icon="🧠",
     layout="centered",
@@ -14,7 +14,7 @@ st.set_set_page_config(
 st.markdown(
     """
     <style>
-    @import url('https://fonts.com/css2?family=Poppins:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
     html, body, .stApp {
         background-color: #0e1117 !important;
