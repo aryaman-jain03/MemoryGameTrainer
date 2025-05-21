@@ -193,19 +193,19 @@ def main():
                 st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
                 time.sleep(1)
                 st.session_state.display_step += 1
-                st.experimental_rerun()
+                st.rerun()
             elif st.session_state.display_step == 3:
                 st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
                 time.sleep(len(st.session_state.sequence) * 1.5)
                 st.session_state.display_step += 1
-                st.experimental_rerun()
+                st.rerun()
         else:
             # Sequence display finished, switch to input phase
             st.session_state.sequence_shown = False
             st.session_state.input_phase = True
             st.session_state.display_step = 0
             st.session_state.user_input = ""  # Clear previous input
-            st.experimental_rerun()
+            st.rerun()
 
     # Input phase
     if st.session_state.input_phase:
@@ -228,7 +228,7 @@ def main():
                 st.session_state.input_phase = False
                 st.session_state.feedback = "🎉 Correct! Leveling up..."
                 time.sleep(1.2)
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
                 st.session_state.input_phase = False
