@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from utils import generate_sequence
+from utils import generate_sequence # Ensure utils.py exists and has this function
 
 # Set page config
 st.set_page_config(
@@ -103,8 +103,8 @@ st.markdown(
         font-style: italic;
     }
 
-    /* Styles for the "pop-up" */
-    .popup-container {
+    /* Styles for the "pop-up" - Using a fixed overlay */
+    .popup-overlay {
         position: fixed;
         top: 0;
         left: 0;
@@ -114,7 +114,7 @@ st.markdown(
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 1000; /* Ensure it's on top */
     }
 
     .popup-content {
@@ -139,10 +139,13 @@ st.markdown(
         font-weight: 600;
     }
 
-    .popup-content .stButton>button {
+    /* Target buttons specifically within the popup content */
+    .popup-content .stButton > button {
         width: auto; /* Override full width for pop-up button */
         padding: 0.8rem 2rem;
         font-size: 1.1rem;
+        margin: 0 auto; /* Center button in pop-up */
+        display: block; /* Make it a block element to apply margin:auto */
     }
     </style>
     """,
@@ -170,7 +173,7 @@ if "user_input_widget" not in st.session_state:
     st.session_state.user_input_widget = ""
 if "game_started" not in st.session_state:
     st.session_state.game_started = False
-# NEW: For Game Over Pop-up
+# For Game Over Pop-up
 if "show_game_over_popup" not in st.session_state:
     st.session_state.show_game_over_popup = False
 if "final_score" not in st.session_state:
@@ -181,10 +184,7 @@ if "final_score" not in st.session_state:
 
 # Function to handle game logic after submission
 def handle_submit():
-    # Get the raw user input
     user_raw_input = st.session_state.user_input_widget.strip()
-    
-    # Get the correct sequence (always a list of strings), ensuring consistency
     correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
     
     entered_sequence = []
@@ -193,7 +193,6 @@ def handle_submit():
     else: # For Words
         entered_sequence = user_raw_input.lower().replace(",", " ").split() 
 
-    # Compare the entered sequence with the correct sequence
     if entered_sequence == correct_sequence:
         st.session_state.score += 10 * st.session_state.level 
         st.session_state.level += 1 
@@ -203,7 +202,6 @@ def handle_submit():
         st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}" 
         st.session_state.final_score = st.session_state.score # Store current score before eventual reset
         st.session_state.show_game_over_popup = True # Trigger the pop-up
-        # Do NOT reset score/level here; it happens in start_new_game_after_popup
 
     st.session_state.input_phase = False # End input phase 
     st.session_state.user_input_widget = "" # Clear the input field 
@@ -222,11 +220,10 @@ def start_game_callback():
     st.session_state.display_step = 0
     st.session_state.user_input_widget = ""
     st.session_state.show_game_over_popup = False # Ensure pop-up is hidden when starting
-    # st.rerun() # Not strictly necessary as the main loop will run immediately after
 
-# NEW: Callback for the "Start Again" button in the pop-up
+# Callback for the "Start A New Game" button in the pop-up
 def start_new_game_after_popup():
-    reset_game_callback() # Use existing reset logic
+    reset_game_callback() # Reset all game state
     start_game_callback() # Start a new game immediately
 
 # Reset state function - Now used as an on_click callback
@@ -280,91 +277,82 @@ def main():
 
     # --- Game Over Pop-up (Conditionally rendered) ---
     if st.session_state.show_game_over_popup:
-        # Use st.container to create a div for the pop-up
-        with st.container():
-            st.markdown(
-                f"""
-                <div class="popup-container">
-                    <div class="popup-content">
-                        <h3>Game Over!</h3>
-                        <p>Incorrect Answer.</p>
-                        <p>Your Final Score: **{st.session_state.final_score}**</p>
-                        <div class="stButton">
-                            <button onclick="window.parent.document.querySelector('[data-testid=stSidebar]').style.display='none'; window.parent.document.querySelector('[data-testid=stExpanderSimple]').click();" style="width: auto;">Start A New Game</button>
-                        </div>
-                    </div>
+        # Create a full-screen overlay for the pop-up effect
+        st.markdown(
+            f"""
+            <div class="popup-overlay">
+                <div class="popup-content">
+                    <h3>Game Over!</h3>
+                    <p>Incorrect Answer.</p>
+                    <p>Your Final Score: {st.session_state.final_score}</p>
+                    {st.button("Start A New Game", on_click=start_new_game_after_popup, key="popup_start_new_game_btn")}
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
-            # The actual button to trigger the game restart (hidden from direct view,
-            # but called by the HTML button's JS)
-            st.button("Start A New Game Trigger", on_click=start_new_game_after_popup, key="popup_start_again_btn")
-            # Hide this button visually, as the HTML button will trigger the callback
-            st.markdown("<style>#popup_start_again_btn { display: none; }</style>", unsafe_allow_html=True)
-            # IMPORTANT: Rerunning here to make sure the popup appears and then disappears when the button is clicked
-            # st.rerun() # This causes a continuous rerun if the popup is visible, moved the start_new_game_after_popup to handle it.
-
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+        # Prevent the rest of the app from rendering while the popup is active
+        # This is important to ensure the button in the popup is the only interactive element
+        return # Exit main() if popup is active
 
     # --- Main Game Flow (Only if pop-up is not visible) ---
-    if not st.session_state.show_game_over_popup:
-        if not st.session_state.game_started:
-            st.write("Welcome! Select your sequence type from the sidebar and click 'Start Game' to begin.")
-            st.button("Start Game", on_click=start_game_callback)
-        else:
-            # Only proceed with game logic if game has started
-            if not st.session_state.input_phase and not st.session_state.sequence_shown:
-                st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
-                st.session_state.feedback = ""
-                st.session_state.sequence_shown = True
+    if not st.session_state.game_started:
+        st.write("Welcome! Select your sequence type from the sidebar and click 'Start Game' to begin.")
+        st.button("Start Game", on_click=start_game_callback)
+    else:
+        # Only proceed with game logic if game has started
+        if not st.session_state.input_phase and not st.session_state.sequence_shown:
+            st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
+            st.session_state.feedback = ""
+            st.session_state.sequence_shown = True
+            st.session_state.display_step = 0
+            st.rerun() # Trigger a rerun to start the display sequence
+
+        # If showing sequence, handle countdown and display step-by-step
+        if st.session_state.sequence_shown:
+            output = display_sequence(st.session_state.sequence)
+            if output is not None:
+                if st.session_state.display_step < 3:
+                    st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
+                    time.sleep(1)
+                    st.session_state.display_step += 1
+                    st.rerun()
+                elif st.session_state.display_step == 3:
+                    st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
+                    # Calculate display time based on sequence length
+                    display_time = len(st.session_state.sequence) * 0.8 + 1.5 # Min 1.5 sec, then 0.8 per item
+                    time.sleep(display_time)
+                    st.session_state.display_step += 1
+                    st.rerun()
+            else:
+                # Sequence display finished, switch to input phase
+                st.session_state.sequence_shown = False
+                st.session_state.input_phase = True
                 st.session_state.display_step = 0
-                st.rerun() # Trigger a rerun to start the display sequence
+                st.session_state.user_input_widget = ""  # Clear previous input for new round (important before widget rendering)
+                st.rerun() # Trigger a rerun to show the input field
 
-            # If showing sequence, handle countdown and display step-by-step
-            if st.session_state.sequence_shown:
-                output = display_sequence(st.session_state.sequence)
-                if output is not None:
-                    if st.session_state.display_step < 3:
-                        st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
-                        time.sleep(1)
-                        st.session_state.display_step += 1
-                        st.rerun()
-                    elif st.session_state.display_step == 3:
-                        st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
-                        # Calculate display time based on sequence length
-                        display_time = len(st.session_state.sequence) * 0.8 + 1.5 # Min 1.5 sec, then 0.8 per item
-                        time.sleep(display_time)
-                        st.session_state.display_step += 1
-                        st.rerun()
-                else:
-                    # Sequence display finished, switch to input phase
-                    st.session_state.sequence_shown = False
-                    st.session_state.input_phase = True
-                    st.session_state.display_step = 0
-                    st.session_state.user_input_widget = ""  # Clear previous input for new round (important before widget rendering)
-                    st.rerun() # Trigger a rerun to show the input field
-
-            # Input phase
-            if st.session_state.input_phase:
-                # Adjusted placeholder text for better clarity on number input
-                placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
-                
-                st.text_input(
-                    "Enter the sequence :",
-                    value=st.session_state.user_input_widget,
-                    placeholder=placeholder_text,
-                    key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
-                    max_chars=150,
-                )
-
-                # Use on_click callback for submit button
-                st.button("Submit", on_click=handle_submit)
+        # Input phase
+        if st.session_state.input_phase:
+            # Adjusted placeholder text for better clarity on number input
+            placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
             
-            # Feedback message (only display if game has started AND no popup)
-            if st.session_state.feedback and not st.session_state.show_game_over_popup:
-                st.markdown(f"**{st.session_state.feedback}**")
+            st.text_input(
+                "Enter the sequence :",
+                value=st.session_state.user_input_widget,
+                placeholder=placeholder_text,
+                key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
+                max_chars=150,
+            )
 
-    # Restart button (always visible)
+            # Use on_click callback for submit button
+            st.button("Submit", on_click=handle_submit)
+        
+        # Feedback message (only display if game has started AND no popup)
+        if st.session_state.feedback and not st.session_state.show_game_over_popup:
+            st.markdown(f"**{st.session_state.feedback}**")
+
+    # Restart button (always visible, outside the main game flow conditional)
     st.button("Restart Game", on_click=reset_game_callback)
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
