@@ -1,7 +1,6 @@
 import streamlit as st
 import time
-# Assuming utils.py contains the generate_sequence function
-from utils import generate_sequence
+from utils import generate_sequence # Ensure utils.py exists and has this function
 
 # Set page config
 st.set_page_config(
@@ -125,9 +124,29 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 if "display_step" not in st.session_state:
     st.session_state.display_step = 0
-# Initialize the session state variable for the text input widget
 if "user_input_widget" not in st.session_state:
     st.session_state.user_input_widget = ""
+
+# --- Callback Functions for Button Actions ---
+
+# Function to handle game logic after submission
+def handle_submit():
+    entered = st.session_state.user_input_widget.strip().lower().replace(",", " ").split()
+    correct = [e.lower() for e in st.session_state.sequence]
+
+    if entered == correct:
+        st.session_state.score += 10 * st.session_state.level
+        st.session_state.level += 1
+        st.session_state.feedback = "🎉 Correct! Leveling up..."
+    else:
+        st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
+        st.session_state.level = 1  # Reset level on incorrect answer
+        st.session_state.score = 0  # Reset score on incorrect answer
+
+    st.session_state.input_phase = False # End input phase
+    st.session_state.user_input_widget = "" # Clear the input field
+    # Rerun is automatically triggered after callback, no need for st.rerun() here
+    time.sleep(1.2) # A brief pause for feedback to be seen before next rerun
 
 # Reset state function
 def reset_game():
@@ -169,12 +188,12 @@ def main():
         """)
 
     st.sidebar.header("Settings")
-    # Using a key for the radio button as well
     seq_type = st.sidebar.radio("Choose sequence type:", ("Numbers", "Words"), key="seq_type_radio")
     st.session_state.sequence_type = seq_type
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("Made with ❤️ by Your Assistant")
+    # You'll want to replace this with your actual repo link
     st.sidebar.markdown("[Source Code](https://github.com/your-repo)")
 
     # Scoreboard
@@ -186,7 +205,7 @@ def main():
         st.session_state.feedback = ""
         st.session_state.sequence_shown = True
         st.session_state.display_step = 0
-        st.rerun()
+        st.rerun() # Trigger a rerun to start the display sequence
 
     # If showing sequence, handle countdown and display step-by-step
     if st.session_state.sequence_shown:
@@ -209,45 +228,27 @@ def main():
             st.session_state.sequence_shown = False
             st.session_state.input_phase = True
             st.session_state.display_step = 0
-            st.session_state.user_input_widget = ""  # Clear previous input for new round
-            st.rerun()
+            st.session_state.user_input_widget = ""  # Clear previous input for new round (important before widget rendering)
+            st.rerun() # Trigger a rerun to show the input field
 
     # Input phase
     if st.session_state.input_phase:
-        # Streamlit automatically updates st.session_state.user_input_widget because of the 'key'
         st.text_input(
             "Enter the sequence (space-separated):",
-            value=st.session_state.user_input_widget, # Use the session state value
+            value=st.session_state.user_input_widget,
             placeholder="Type your sequence here...",
-            key="user_input_widget", # This key makes Streamlit manage the value in session_state
+            key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
             max_chars=150,
         )
 
-        if st.button("✅ Submit"):
-            # Fetch the input directly from session_state
-            entered = st.session_state.user_input_widget.strip().lower().replace(",", " ").split()
-            correct = [e.lower() for e in st.session_state.sequence]
+        # Use on_click callback to prevent StreamlitAPIException
+        st.button("✅ Submit", on_click=handle_submit)
 
-            if entered == correct:
-                st.session_state.score += 10 * st.session_state.level
-                st.session_state.level += 1
-                st.session_state.input_phase = False
-                st.session_state.feedback = "🎉 Correct! Leveling up..."
-                st.session_state.user_input_widget = "" # Clear for next round
-                time.sleep(1.2)
-                st.rerun()
-            else:
-                st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
-                st.session_state.input_phase = False
-                st.session_state.level = 1 # Reset level on incorrect answer
-                st.session_state.score = 0 # Reset score on incorrect answer
-                st.session_state.user_input_widget = "" # Clear for fresh start
-                time.sleep(1.2)
-                st.rerun()
     else:
-        # Only show this message if we are not actively displaying the sequence
-        if not st.session_state.sequence_shown:
-            st.write("⏳ Please wait for the sequence to appear...")
+        # This message will appear when not in input phase AND not actively showing sequence.
+        # This covers states like initial load, after submit while feedback is shown, etc.
+        if not st.session_state.sequence_shown and not st.session_state.input_phase:
+            st.write("⏳ Click 'Start Game' (or wait for the next sequence) to begin!")
 
 
     # Feedback message
