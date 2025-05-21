@@ -180,12 +180,12 @@ def main():
     # Instructions
     with st.expander("How to Play", expanded=True):
         st.markdown("""
-        1️ A sequence of **numbers** or **words** will appear after a short countdown.  
-        2️ **Memorize** the sequence quickly!  
-        3️ After it disappears, **enter it exactly** in the text box below.  
-        4️ Press **Submit** to check your answer.  
-        5️ Correct? Your score increases and the game gets harder.  
-        6️ Wrong? Game resets. Try again and beat your best!
+        1 A sequence of **numbers** or **words** will appear after a short countdown.  
+        2 **Memorize** the sequence quickly!  
+        3 After it disappears, **enter it exactly** in the text box below.  
+        4 Press **Submit** to check your answer.  
+        5 Correct? Your score increases and the game gets harder.  
+        6 Wrong? Game resets. Try again and beat your best!
         """)
 
     st.sidebar.header("Settings")
