@@ -215,7 +215,8 @@ def main():
 
     if st.button("🔄 Restart Game"):
         reset_game()
-        st.experimental_rerun()
+        st.rerun()
+
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
