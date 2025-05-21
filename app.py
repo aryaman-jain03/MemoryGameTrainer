@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from utils import generate_sequence # Ensure utils.py exists and has this function
+from utils import generate_sequence # Ensure utils.py exists and has this function [cite: 31]
 
 # Set page config
 st.set_page_config(
@@ -126,6 +126,7 @@ st.markdown(
         max-width: 400px;
         color: #f1f1f1;
         font-size: 1.1rem;
+        position: relative; /* Needed for absolute positioning of close button */
     }
 
     .popup-content h3 {
@@ -144,8 +145,28 @@ st.markdown(
         width: auto; /* Override full width for pop-up button */
         padding: 0.8rem 2rem;
         font-size: 1.1rem;
-        margin: 0 auto; /* Center button in pop-up */
-        display: block; /* Make it a block element to apply margin:auto */
+        margin: 0 10px; /* Add some spacing between buttons */
+        display: inline-block; /* Allow buttons to be side-by-side */
+    }
+
+    .close-button {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        font-size: 1.8rem;
+        color: #f1f1f1;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        line-height: 1;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .close-button:hover {
+        opacity: 1;
+        color: #ffe600;
     }
     </style>
     """,
@@ -221,10 +242,25 @@ def start_game_callback():
     st.session_state.user_input_widget = ""
     st.session_state.show_game_over_popup = False # Ensure pop-up is hidden when starting
 
-# Callback for the "Start A New Game" button in the pop-up
-def start_new_game_after_popup():
+# Callback for the "Retry" button in the pop-up
+def retry_game_callback():
     reset_game_callback() # Reset all game state
     start_game_callback() # Start a new game immediately
+
+# NEW: Callback for the "Cross" button in the pop-up
+def close_game_over_popup():
+    st.session_state.show_game_over_popup = False
+    st.session_state.game_started = False # Go back to the initial "Start Game" screen
+    # Reset other game state variables to ensure a clean slate
+    st.session_state.level = 1
+    st.session_state.score = 0
+    st.session_state.sequence = []
+    st.session_state.input_phase = False
+    st.session_state.sequence_shown = False
+    st.session_state.feedback = ""
+    st.session_state.display_step = 0
+    st.session_state.user_input_widget = ""
+
 
 # Reset state function - Now used as an on_click callback
 def reset_game_callback():
@@ -278,28 +314,27 @@ def main():
     # --- Game Over Pop-up (Conditionally rendered) ---
     if st.session_state.show_game_over_popup:
         # Create a full-screen overlay for the pop-up effect
-        # Using an empty container to hold the content
         with st.container():
             st.markdown(
                 f"""
                 <div class="popup-overlay">
                     <div class="popup-content">
+                        <button class="close-button" onclick="window.parent.document.querySelector('[data-testid=\"stButton\"][key=\"hidden_close_popup_btn\"] > button').click();">&times;</button>
                         <h3>Game Over!</h3>
                         <p>Incorrect Answer.</p>
                         <p>Your Final Score: {st.session_state.final_score}</p>
-                        <div id="popup_button_container"></div>
+                        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+                            {st.button("Retry", on_click=retry_game_callback, key="popup_retry_btn")}
+                        </div>
                     </div>
                 </div>
                 """,
                 unsafe_allow_html=True
             )
-            # Render the Streamlit button OUTSIDE the markdown string but inside the same container scope.
-            # This ensures it's a functional Streamlit component.
-            # Use st.empty() to insert the button in the specific div if more control is needed,
-            # but for this simple case, rendering directly after the markdown is usually sufficient
-            # if the CSS targets it correctly.
-            st.button("Start A New Game", on_click=start_new_game_after_popup, key="popup_start_new_game_btn")
-        
+            # A hidden Streamlit button to trigger the close_game_over_popup callback
+            st.button("Hidden Close Popup", on_click=close_game_over_popup, key="hidden_close_popup_btn")
+            st.markdown("<style>#hidden_close_popup_btn { display: none; }</style>", unsafe_allow_html=True)
+
         # Prevent the rest of the app from rendering while the popup is active
         return # Exit main() if popup is active
 
