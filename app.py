@@ -215,7 +215,24 @@ def main():
 
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
 
-   
+    # --- Game Over Pop-up ---
+    if st.session_state.show_game_over_popup:
+        st.markdown(f"""
+            <div class="popup-overlay">
+                <div class="popup-content">
+                    <h3>Game Over!</h3>
+                    <p>Incorrect Answer.</p>
+                    <p>Your Final Score: {st.session_state.final_score}</p>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.button("↻ Retry", on_click=retry_game_callback)
+        with col2:
+            st.button("✖ Back to Menu", on_click=close_game_over_popup)
+        return
 
     # --- Game not started ---
     if not st.session_state.game_started:
