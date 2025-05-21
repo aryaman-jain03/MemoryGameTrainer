@@ -130,23 +130,49 @@ if "user_input_widget" not in st.session_state:
 # --- Callback Functions for Button Actions ---
 
 # Function to handle game logic after submission
+# app.py
+
+# ... (rest of your imports and setup)
+
 def handle_submit():
-    entered = st.session_state.user_input_widget.strip().lower().replace(",", " ").split()
-    correct = [e.lower() for e in st.session_state.sequence]
+    # Get the raw user input
+    user_raw_input = st.session_state.user_input_widget.strip()
+    
+    # Get the correct sequence (always a list of strings)
+    correct_sequence = [str(item).lower() for item in st.session_state.sequence] # Ensure correct sequence items are strings and lowercased
+    
+    entered_sequence = []
+    if st.session_state.sequence_type == "Numbers":
+        # For numbers, treat the entire input as one string, then split if necessary for comparison
+        # If the sequence is [1, 2, 3] and user types "123", we need to compare "123" with "123"
+        # Or, if original sequence was ['1', '2', '3'], user input '123', then compare '123' with '123'
+        # The generate_sequence function already returns strings for numbers [cite: 31]
+        entered_sequence = list(user_raw_input) # This will split "123" into ['1', '2', '3']
+        
+        # Adjust correct_sequence to be a single string for direct comparison if preferred,
+        # or keep as list and ensure entered_sequence matches format.
+        # Given generate_sequence returns ['1', '2', '3'], entered ['1','2','3'] is what we want.
+        # So, the comparison `entered == correct` needs `entered` to be ['1', '2', '3'] if correct is ['1', '2', '3'].
+        # `list(user_raw_input)` correctly handles this for single-digit numbers.
+        # If numbers can be multi-digit (e.g., [10, 20]), this needs more thought.
+        # For now, assuming single digit numbers, '123' -> ['1','2','3'] which matches ['1','2','3']
+        
+    else: # For Words
+        entered_sequence = user_raw_input.lower().replace(",", " ").split() # Split by spaces for words [cite: 14]
 
-    if entered == correct:
-        st.session_state.score += 10 * st.session_state.level
-        st.session_state.level += 1
-        st.session_state.feedback = "Correct! Leveling up..."
+    # Compare the entered sequence with the correct sequence
+    if entered_sequence == correct_sequence:
+        st.session_state.score += 10 * st.session_state.level [cite: 14]
+        st.session_state.level += 1 [cite: 14]
+        st.session_state.feedback = "Correct! Leveling up..." [cite: 15]
     else:
-        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct)}"
-        st.session_state.level = 1  # Reset level on incorrect answer
-        st.session_state.score = 0  # Reset score on incorrect answer
+        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}" [cite: 16]
+        st.session_state.level = 1  # Reset level on incorrect answer [cite: 16]
+        st.session_state.score = 0  # Reset score on incorrect answer [cite: 16]
 
-    st.session_state.input_phase = False # End input phase
-    st.session_state.user_input_widget = "" # Clear the input field
-    # Rerun is automatically triggered after callback, no need for st.rerun() here
-    time.sleep(1.2) # A brief pause for feedback to be seen before next rerun
+    st.session_state.input_phase = False [cite: 16] # End input phase
+    st.session_state.user_input_widget = "" [cite: 16] # Clear the input field
+    time.sleep(1.2) [cite: 16] # A brief pause for feedback to be seen before next rerun
 
 # Reset state function - Now used as an on_click callback
 def reset_game_callback():
