@@ -148,28 +148,37 @@ for k, v in defaults.items():
 
 # --- Game logic handlers ---
 def handle_submit():
-    user_raw = st.session_state.user_input_widget.strip()
-    correct_seq = [str(x).lower() for x in st.session_state.sequence]
-
+    # Get the raw user input
+    user_raw_input = st.session_state.user_input_widget.strip()
+    
+    # Get the correct sequence (always a list of strings), ensuring consistency
+    correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
+    
+    entered_sequence = []
     if st.session_state.sequence_type == "Numbers":
-        # Remove all whitespace, then split into characters
-        user_raw = ''.join(user_raw.split())  # removes all spaces/newlines
-        entered_seq = list(user_raw)
-    else:
-        entered_seq = user_raw.lower().replace(",", " ").split()  # handles words like 'cat dog'
+        # For numbers, treat the entire input as a string and split into characters
+        # This assumes single-digit numbers. E.g., "123" becomes ['1', '2', '3']
+        entered_sequence = list(user_raw_input) 
+        
+    else: # For Words
+        # For words, split by spaces, handle commas, convert to lowercase
+        entered_sequence = user_raw_input.lower().replace(",", " ").split() 
 
-    if entered_seq == correct_seq:
-        st.session_state.score += 10 * st.session_state.level
-        st.session_state.level += 1
-        st.session_state.feedback = "Correct! Leveling up..."
+    # Compare the entered sequence with the correct sequence
+    if entered_sequence == correct_sequence:
+        st.session_state.score += 10 * st.session_state.level 
+        st.session_state.level += 1 
+        st.session_state.feedback = "Correct! Leveling up..." 
     else:
-        st.session_state.feedback = f"Incorrect. Correct was: {' '.join(correct_seq)}"
-        st.session_state.final_score = st.session_state.score
-        st.session_state.show_game_over_popup = True
+        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}" 
+        st.session_state.level = 1  # Reset level on incorrect answer 
+        st.session_state.score = 0  # Reset score on incorrect answer 
 
-    st.session_state.input_phase = False
-    st.session_state.user_input_widget = ""
-    time.sleep(1.2)
+    st.session_state.input_phase = False # End input phase 
+    st.session_state.user_input_widget = "" # Clear the input field 
+    time.sleep(1.2) # A brief pause for feedback to be seen before next rerun 
+
+
 
 
 
