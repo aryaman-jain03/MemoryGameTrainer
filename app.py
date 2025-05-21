@@ -278,21 +278,29 @@ def main():
     # --- Game Over Pop-up (Conditionally rendered) ---
     if st.session_state.show_game_over_popup:
         # Create a full-screen overlay for the pop-up effect
-        st.markdown(
-            f"""
-            <div class="popup-overlay">
-                <div class="popup-content">
-                    <h3>Game Over!</h3>
-                    <p>Incorrect Answer.</p>
-                    <p>Your Final Score: {st.session_state.final_score}</p>
-                    {st.button("Start A New Game", on_click=start_new_game_after_popup, key="popup_start_new_game_btn")}
+        # Using an empty container to hold the content
+        with st.container():
+            st.markdown(
+                f"""
+                <div class="popup-overlay">
+                    <div class="popup-content">
+                        <h3>Game Over!</h3>
+                        <p>Incorrect Answer.</p>
+                        <p>Your Final Score: {st.session_state.final_score}</p>
+                        <div id="popup_button_container"></div>
+                    </div>
                 </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
+                """,
+                unsafe_allow_html=True
+            )
+            # Render the Streamlit button OUTSIDE the markdown string but inside the same container scope.
+            # This ensures it's a functional Streamlit component.
+            # Use st.empty() to insert the button in the specific div if more control is needed,
+            # but for this simple case, rendering directly after the markdown is usually sufficient
+            # if the CSS targets it correctly.
+            st.button("Start A New Game", on_click=start_new_game_after_popup, key="popup_start_new_game_btn")
+        
         # Prevent the rest of the app from rendering while the popup is active
-        # This is important to ensure the button in the popup is the only interactive element
         return # Exit main() if popup is active
 
     # --- Main Game Flow (Only if pop-up is not visible) ---
