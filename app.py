@@ -183,7 +183,7 @@ def main():
         st.session_state.feedback = ""
         st.session_state.sequence_shown = True
         st.session_state.display_step = 0
-        st.experimental_rerun()
+        st.rerun()
 
     # If showing sequence, handle countdown and display step-by-step
     if st.session_state.sequence_shown:
