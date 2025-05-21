@@ -1,5 +1,6 @@
 import streamlit as st
 import time
+# Assuming utils.py contains the generate_sequence function
 from utils import generate_sequence
 
 # Set page config
@@ -124,8 +125,9 @@ if "feedback" not in st.session_state:
     st.session_state.feedback = ""
 if "display_step" not in st.session_state:
     st.session_state.display_step = 0
-if "user_input" not in st.session_state:
-    st.session_state.user_input = ""
+# Initialize the session state variable for the text input widget
+if "user_input_widget" not in st.session_state:
+    st.session_state.user_input_widget = ""
 
 # Reset state function
 def reset_game():
@@ -136,7 +138,7 @@ def reset_game():
     st.session_state.sequence_shown = False
     st.session_state.feedback = ""
     st.session_state.display_step = 0
-    st.session_state.user_input = ""
+    st.session_state.user_input_widget = "" # Clear the input widget content
 
 # Display sequence based on display_step
 def display_sequence(seq):
@@ -167,7 +169,8 @@ def main():
         """)
 
     st.sidebar.header("Settings")
-    seq_type = st.sidebar.radio("Choose sequence type:", ("Numbers", "Words"))
+    # Using a key for the radio button as well
+    seq_type = st.sidebar.radio("Choose sequence type:", ("Numbers", "Words"), key="seq_type_radio")
     st.session_state.sequence_type = seq_type
 
     st.sidebar.markdown("---")
@@ -196,7 +199,9 @@ def main():
                 st.rerun()
             elif st.session_state.display_step == 3:
                 st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
-                time.sleep(len(st.session_state.sequence) * 1.5)
+                # Calculate display time based on sequence length
+                display_time = len(st.session_state.sequence) * 0.8 + 1.5 # Min 1.5 sec, then 0.8 per item
+                time.sleep(display_time)
                 st.session_state.display_step += 1
                 st.rerun()
         else:
@@ -204,22 +209,23 @@ def main():
             st.session_state.sequence_shown = False
             st.session_state.input_phase = True
             st.session_state.display_step = 0
-            st.session_state.user_input = ""  # Clear previous input
+            st.session_state.user_input_widget = ""  # Clear previous input for new round
             st.rerun()
 
     # Input phase
     if st.session_state.input_phase:
-        user_input = st.text_input(
+        # Streamlit automatically updates st.session_state.user_input_widget because of the 'key'
+        st.text_input(
             "Enter the sequence (space-separated):",
-            value=st.session_state.user_input,
+            value=st.session_state.user_input_widget, # Use the session state value
             placeholder="Type your sequence here...",
-            key="user_input",
+            key="user_input_widget", # This key makes Streamlit manage the value in session_state
             max_chars=150,
         )
-        st.session_state.user_input = user_input
 
         if st.button("✅ Submit"):
-            entered = user_input.strip().lower().replace(",", " ").split()
+            # Fetch the input directly from session_state
+            entered = st.session_state.user_input_widget.strip().lower().replace(",", " ").split()
             correct = [e.lower() for e in st.session_state.sequence]
 
             if entered == correct:
@@ -227,18 +233,22 @@ def main():
                 st.session_state.level += 1
                 st.session_state.input_phase = False
                 st.session_state.feedback = "🎉 Correct! Leveling up..."
+                st.session_state.user_input_widget = "" # Clear for next round
                 time.sleep(1.2)
                 st.rerun()
             else:
                 st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
                 st.session_state.input_phase = False
-                st.session_state.level = 1
-                st.session_state.score = 0
+                st.session_state.level = 1 # Reset level on incorrect answer
+                st.session_state.score = 0 # Reset score on incorrect answer
+                st.session_state.user_input_widget = "" # Clear for fresh start
                 time.sleep(1.2)
                 st.rerun()
     else:
-        # When sequence is showing, inform user to wait
-        st.write("⏳ Please wait, sequence is being shown...")
+        # Only show this message if we are not actively displaying the sequence
+        if not st.session_state.sequence_shown:
+            st.write("⏳ Please wait for the sequence to appear...")
+
 
     # Feedback message
     if st.session_state.feedback:
