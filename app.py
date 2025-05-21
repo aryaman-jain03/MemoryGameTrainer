@@ -149,19 +149,52 @@ for k, v in defaults.items():
 # --- Game logic handlers ---
 def handle_submit():
     user_raw_input = st.session_state.user_input_widget.strip()
-    correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
     
-    if st.session_state.sequence_type == "Numbers":
-        entered_sequence = list(user_raw_input)
-    else:
-        entered_sequence = user_raw_input.lower().replace(",", " ").split()
+    # Generate correct_sequence as a list of strings, ready for comparison
+    # It's crucial that st.session_state.sequence holds the original numbers/words
+    correct_sequence_for_comparison = [str(item).lower() for item in st.session_state.sequence] 
+    
+    entered_sequence = []
+    input_is_valid = True
 
-    if entered_sequence == correct_sequence:
+    if st.session_state.sequence_type == "Numbers":
+        # For numbers, split by space, then try to convert each part to string representation of int
+        # This handles both single and multi-digit numbers like "1 5 9" or "10 2 5"
+        parts = user_raw_input.split()
+        try:
+            for part in parts:
+                # Attempt to convert to int and then back to str to ensure it's a valid number
+                entered_sequence.append(str(int(part))) 
+        except ValueError:
+            input_is_valid = False
+            st.session_state.feedback = "Invalid input for numbers. Please enter digits only, separated by spaces."
+    else: # Words
+        # This part was already robust
+        entered_sequence = user_raw_input.lower().replace(",", " ").split()
+        # Filter out any empty strings that might result from multiple spaces or leading/trailing spaces
+        entered_sequence = [word for word in entered_sequence if word]
+
+    if not input_is_valid:
+        # If input was invalid, handle feedback and reset game state
+        st.session_state.final_score = st.session_state.score # Save score BEFORE reset
+        st.session_state.show_game_over_popup = True           # Trigger game over popup
+        st.session_state.level = 1
+        st.session_state.score = 0
+        st.session_state.input_phase = False
+        st.session_state.user_input_widget = ""
+        # No time.sleep() here, let Streamlit re-render the feedback/popup
+        return # Stop execution of this function
+
+    # Proceed with comparison only if input was valid
+    if entered_sequence == correct_sequence_for_comparison:
         st.session_state.score += 10 * st.session_state.level
         st.session_state.level += 1
         st.session_state.feedback = "Correct! Leveling up..."
+        # Optionally, you can add a short delay here for the feedback to be visible
+        # time.sleep(0.8) 
     else:
-        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}"
+        # Provide more specific feedback showing the correct sequence
+        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence_for_comparison)}"
         st.session_state.final_score = st.session_state.score  # Save score BEFORE reset
         st.session_state.show_game_over_popup = True           # Trigger game over popup
         st.session_state.level = 1
@@ -169,7 +202,30 @@ def handle_submit():
 
     st.session_state.input_phase = False
     st.session_state.user_input_widget = ""
-    time.sleep(1.2)
+    # Removed the time.sleep(1.2) at the end to prevent blocking.
+    # Streamlit will re-render naturally on state change.
+    st.rerun() # Ensure UI updates immediately after submission
+
+# ... (rest of your existing game logic handlers and main function) ...
+
+# --- Adjustments in main() function for placeholder text ---
+# Find this block in your main() function:
+# if st.session_state.input_phase:
+#     placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
+#     st.text_input("Enter the sequence:", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150)
+#     st.button("Submit", on_click=handle_submit)
+
+# Replace the 'placeholder_text' line with this:
+# (Leave the rest of the st.text_input call as is)
+if st.session_state.input_phase:
+    placeholder_text = "Type your sequence here, separate numbers with spaces" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
+    st.text_input("Enter the sequence:", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150, on_change=None) # on_change=None can prevent premature submission
+
+    # Add a check for empty input before enabling submit button, if desired
+    # if st.session_state.user_input_widget:
+    st.button("Submit", on_click=handle_submit)
+    # else:
+    #     st.button("Submit", disabled=True)
 
 
 def start_game_callback():
