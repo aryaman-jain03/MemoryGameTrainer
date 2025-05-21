@@ -107,7 +107,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 # Session state defaults
 if "sequence" not in st.session_state:
     st.session_state.sequence = []
@@ -142,7 +141,6 @@ def countdown(seconds=3):
     countdown_ph.empty()
 
 # Display sequence
-
 def display_sequence(seq):
     st.session_state.sequence_shown = True
     countdown(3)
@@ -154,7 +152,6 @@ def display_sequence(seq):
     st.session_state.input_phase = True
 
 # Main app
-
 def main():
     st.title("🧠 Memory Game Trainer")
 
@@ -203,20 +200,21 @@ def main():
                 st.session_state.input_phase = False
                 st.session_state.feedback = "🎉 Correct! Leveling up..."
                 time.sleep(1.2)
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
                 st.session_state.input_phase = False
                 st.session_state.level = 1
                 st.session_state.score = 0
+    else:
+        st.write("⏳ Please wait, sequence is being shown...")
 
     if st.session_state.feedback:
         st.markdown(f"**{st.session_state.feedback}**")
 
     if st.button("🔄 Restart Game"):
         reset_game()
-        st.rerun()
-
+        st.experimental_rerun()
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
