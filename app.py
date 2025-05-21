@@ -16,53 +16,58 @@ st.markdown(
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
 
-    body {
+    html, body, .stApp {
+        background-color: #0e1117 !important;
+        color: #f1f1f1 !important;
         font-family: 'Poppins', sans-serif;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #f1f1f1;
     }
+
     .stApp {
-        background: transparent;
         padding: 2rem;
         border-radius: 15px;
-        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.4);
-        max-width: 650px;
+        max-width: 700px;
         margin: auto;
     }
-    h1, h3, h4 {
+
+    h1 {
         font-weight: 700;
         text-align: center;
+        margin-bottom: 0.2rem;
         color: #ffe600;
         text-shadow: 1px 1px 6px #3b0091;
     }
+
     .sequence-display {
-        font-size: 2rem;
-        letter-spacing: 0.2rem;
+        font-size: 1.8rem;
+        letter-spacing: 0.15rem;
         text-align: center;
         font-weight: 600;
-        background: rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 1.2rem;
-        margin: 1rem 0;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        padding: 1rem;
+        margin-bottom: 1rem;
         user-select: none;
         color: #ffd600;
         text-shadow: 1px 1px 5px #29006d;
     }
+
     .scoreboard {
         text-align: center;
-        margin: 1.5rem 0;
-        font-size: 1.2rem;
+        margin: 1rem 0;
+        font-size: 1.1rem;
         font-weight: 700;
         color: #ffdb00;
         text-shadow: 0 0 8px #b67f00;
     }
+
     .footer {
         text-align: center;
-        font-size: 0.9rem;
-        margin-top: 2.5rem;
+        font-size: 0.85rem;
+        margin-top: 2rem;
         color: #ddddddaa;
         user-select: none;
     }
+
     .stButton>button {
         background: linear-gradient(90deg, #ffbb33, #ff8800);
         border: none;
@@ -74,12 +79,14 @@ st.markdown(
         transition: background 0.3s ease;
         width: 100%;
     }
+
     .stButton>button:hover {
         background: linear-gradient(90deg, #ff8800, #ffbb33);
         cursor: pointer;
     }
+
     .stTextInput>div>input {
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         border: none;
         color: #fff;
@@ -90,6 +97,7 @@ st.markdown(
         letter-spacing: 0.05rem;
         box-shadow: 0 0 8px #ffb800aa inset;
     }
+
     .stTextInput>div>input::placeholder {
         color: #ffe066cc;
         font-style: italic;
@@ -98,6 +106,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
 
 # Session state defaults
 if "sequence" not in st.session_state:
