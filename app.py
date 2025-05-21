@@ -126,6 +126,10 @@ if "display_step" not in st.session_state:
     st.session_state.display_step = 0
 if "user_input_widget" not in st.session_state:
     st.session_state.user_input_widget = ""
+# NEW: Track if the game has started
+if "game_started" not in st.session_state:
+    st.session_state.game_started = False
+
 
 # --- Callback Functions for Button Actions ---
 
@@ -161,6 +165,21 @@ def handle_submit():
     st.session_state.user_input_widget = "" # Clear the input field 
     time.sleep(1.2) # A brief pause for feedback to be seen before next rerun 
 
+# Callback to start the game
+def start_game_callback():
+    st.session_state.game_started = True
+    # Reset other game state variables to ensure a fresh start
+    st.session_state.level = 1
+    st.session_state.score = 0
+    st.session_state.sequence = [] # Will be generated in main loop
+    st.session_state.input_phase = False
+    st.session_state.sequence_shown = False
+    st.session_state.feedback = ""
+    st.session_state.display_step = 0
+    st.session_state.user_input_widget = ""
+    # st.rerun() # Not strictly necessary as the main loop will run immediately after
+
+
 # Reset state function - Now used as an on_click callback
 def reset_game_callback():
     st.session_state.level = 1
@@ -171,6 +190,7 @@ def reset_game_callback():
     st.session_state.feedback = ""
     st.session_state.display_step = 0
     st.session_state.user_input_widget = "" # Clear the input widget content
+    st.session_state.game_started = False # NEW: Set game_started to False on reset
     # A rerun is automatically triggered after a callback
 
 # Display sequence based on display_step
@@ -213,66 +233,64 @@ def main():
     # Scoreboard
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
 
-    # Start new sequence if not in input phase and not showing sequence
-    if not st.session_state.input_phase and not st.session_state.sequence_shown:
-        st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
-        st.session_state.feedback = ""
-        st.session_state.sequence_shown = True
-        st.session_state.display_step = 0
-        st.rerun() # Trigger a rerun to start the display sequence
-
-    # If showing sequence, handle countdown and display step-by-step
-    if st.session_state.sequence_shown:
-        output = display_sequence(st.session_state.sequence)
-        if output is not None:
-            if st.session_state.display_step < 3:
-                st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
-                time.sleep(1)
-                st.session_state.display_step += 1
-                st.rerun()
-            elif st.session_state.display_step == 3:
-                st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
-                # Calculate display time based on sequence length
-                display_time = len(st.session_state.sequence) * 0.8 + 1.5 # Min 1.5 sec, then 0.8 per item
-                time.sleep(display_time)
-                st.session_state.display_step += 1
-                st.rerun()
-        else:
-            # Sequence display finished, switch to input phase
-            st.session_state.sequence_shown = False
-            st.session_state.input_phase = True
-            st.session_state.display_step = 0
-            st.session_state.user_input_widget = ""  # Clear previous input for new round (important before widget rendering)
-            st.rerun() # Trigger a rerun to show the input field
-
-    # Input phase
-    if st.session_state.input_phase:
-        # Adjusted placeholder text for better clarity on number input
-        placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
-        
-        st.text_input(
-            "Enter the sequence :",
-            value=st.session_state.user_input_widget,
-            placeholder=placeholder_text,
-            key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
-            max_chars=150,
-        )
-
-        # Use on_click callback for submit button
-        st.button("Submit", on_click=handle_submit)
-
+    # --- Game Flow Control based on game_started state ---
+    if not st.session_state.game_started:
+        st.write("Welcome! Select your sequence type from the sidebar and click 'Start Game' to begin.")
+        st.button("Start Game", on_click=start_game_callback)
     else:
-        # This message will appear when not in input phase AND not actively showing sequence.
-        # This covers states like initial load, after submit while feedback is shown, etc.
-        if not st.session_state.sequence_shown and not st.session_state.input_phase:
-            st.write("⏳ Click 'Start Game' (or wait for the next sequence) to begin!")
+        # Only proceed with game logic if game has started
+        if not st.session_state.input_phase and not st.session_state.sequence_shown:
+            st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
+            st.session_state.feedback = ""
+            st.session_state.sequence_shown = True
+            st.session_state.display_step = 0
+            st.rerun() # Trigger a rerun to start the display sequence
 
+        # If showing sequence, handle countdown and display step-by-step
+        if st.session_state.sequence_shown:
+            output = display_sequence(st.session_state.sequence)
+            if output is not None:
+                if st.session_state.display_step < 3:
+                    st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
+                    time.sleep(1)
+                    st.session_state.display_step += 1
+                    st.rerun()
+                elif st.session_state.display_step == 3:
+                    st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
+                    # Calculate display time based on sequence length
+                    display_time = len(st.session_state.sequence) * 0.8 + 1.5 # Min 1.5 sec, then 0.8 per item
+                    time.sleep(display_time)
+                    st.session_state.display_step += 1
+                    st.rerun()
+            else:
+                # Sequence display finished, switch to input phase
+                st.session_state.sequence_shown = False
+                st.session_state.input_phase = True
+                st.session_state.display_step = 0
+                st.session_state.user_input_widget = ""  # Clear previous input for new round (important before widget rendering)
+                st.rerun() # Trigger a rerun to show the input field
 
-    # Feedback message
-    if st.session_state.feedback:
-        st.markdown(f"**{st.session_state.feedback}**")
+        # Input phase
+        if st.session_state.input_phase:
+            # Adjusted placeholder text for better clarity on number input
+            placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
+            
+            st.text_input(
+                "Enter the sequence :",
+                value=st.session_state.user_input_widget,
+                placeholder=placeholder_text,
+                key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
+                max_chars=150,
+            )
 
-    # Restart button - Use on_click callback here too!
+            # Use on_click callback for submit button
+            st.button("Submit", on_click=handle_submit)
+        
+        # Feedback message (only display if game has started)
+        if st.session_state.feedback:
+            st.markdown(f"**{st.session_state.feedback}**")
+
+    # Restart button (always visible)
     st.button("Restart Game", on_click=reset_game_callback)
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
