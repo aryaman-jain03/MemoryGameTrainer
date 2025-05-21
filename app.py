@@ -1,8 +1,8 @@
 import streamlit as st
 import time
-from utils import generate_sequence  # Ensure utils.py exists and has this function
+from utils import generate_sequence  # Ensure utils.py exists and works
 
-# Set page config
+# Page config
 st.set_page_config(
     page_title="Memory Game Trainer",
     page_icon="🧠",
@@ -10,7 +10,7 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Custom CSS for styling
+# Custom CSS
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap');
@@ -91,7 +91,7 @@ h1 {
     color: #ffe066cc;
     font-style: italic;
 }
-/* Pop-up Styles */
+/* Pop-up */
 .popup-overlay {
     position: fixed;
     top: 0;
@@ -124,28 +124,10 @@ h1 {
     font-size: 1.2rem;
     font-weight: 600;
 }
-.close-button-html {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 1.8rem;
-    color: #f1f1f1;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 0;
-    line-height: 1;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-.close-button-html:hover {
-    opacity: 1;
-    color: #ffe600;
-}
 </style>
 """, unsafe_allow_html=True)
 
-# Session state defaults
+# Initialize session state
 defaults = {
     "sequence": [],
     "level": 1,
@@ -158,34 +140,38 @@ defaults = {
     "user_input_widget": "",
     "game_started": False,
     "show_game_over_popup": False,
-    "final_score": 0
+    "final_score": 0,
 }
-for key, val in defaults.items():
-    if key not in st.session_state:
-        st.session_state[key] = val
+for k, v in defaults.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
-# --- Callback Functions ---
+# --- Game logic handlers ---
 def handle_submit():
-    user_raw_input = st.session_state.user_input_widget.strip()
-    correct_sequence = [str(item).lower() for item in st.session_state.sequence]
-    entered_sequence = list(user_raw_input) if st.session_state.sequence_type == "Numbers" else user_raw_input.lower().replace(",", " ").split()
-    if entered_sequence == correct_sequence:
+    user_raw = st.session_state.user_input_widget.strip()
+    correct_seq = [str(x).lower() for x in st.session_state.sequence]
+
+    if st.session_state.sequence_type == "Numbers":
+        entered_seq = list(user_raw)
+    else:
+        entered_seq = user_raw.lower().replace(",", " ").split()
+
+    if ''.join(entered_seq) == ''.join(correct_seq):
         st.session_state.score += 10 * st.session_state.level
         st.session_state.level += 1
         st.session_state.feedback = "Correct! Leveling up..."
     else:
-        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}"
+        st.session_state.feedback = f"Incorrect. Correct was: {' '.join(correct_seq)}"
         st.session_state.final_score = st.session_state.score
         st.session_state.show_game_over_popup = True
+
     st.session_state.input_phase = False
     st.session_state.user_input_widget = ""
     time.sleep(1.2)
 
 def start_game_callback():
-    st.session_state.game_started = True
     reset_game_callback()
     st.session_state.game_started = True
-    st.session_state.show_game_over_popup = False
 
 def retry_game_callback():
     reset_game_callback()
@@ -195,9 +181,8 @@ def close_game_over_popup():
     reset_game_callback()
 
 def reset_game_callback():
-    for key, val in defaults.items():
-        st.session_state[key] = val
-    st.session_state.game_started = False
+    for k, v in defaults.items():
+        st.session_state[k] = v
 
 def display_sequence(seq):
     step = st.session_state.display_step
@@ -208,7 +193,7 @@ def display_sequence(seq):
     else:
         return None
 
-# --- Main App Logic ---
+# --- Main App ---
 def main():
     st.title("🧠 Memory Game Trainer")
 
@@ -230,69 +215,64 @@ def main():
 
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
 
-    # Pop-up
+    # --- Game Over Pop-up ---
     if st.session_state.show_game_over_popup:
-        popup_placeholder = st.empty()
-        with popup_placeholder.container():
-            st.markdown(
-                f"""
-                <div class="popup-overlay">
-                    <div class="popup-content">
-                        <button class="close-button-html" onclick="window.parent.document.querySelector('[data-testid=\\"stButton\\"][key=\\"_hidden_close_popup_btn\\"] > button').click();">&times;</button>
-                        <h3>Game Over!</h3>
-                        <p>Incorrect Answer.</p>
-                        <p>Your Final Score: {st.session_state.final_score}</p>
-                    </div>
+        st.markdown(f"""
+            <div class="popup-overlay">
+                <div class="popup-content">
+                    <h3>Game Over!</h3>
+                    <p>Incorrect Answer.</p>
+                    <p>Your Final Score: {st.session_state.final_score}</p>
                 </div>
-                """,
-                unsafe_allow_html=True
-            )
-            col1, col2 = st.columns([1, 1])
-            with col1:
-                st.button("Retry", on_click=retry_game_callback, key="popup_retry_btn")
-            with col2:
-                st.button("Hidden Close Popup Button", on_click=close_game_over_popup, key="_hidden_close_popup_btn")
-                st.markdown("<style>#_hidden_close_popup_btn { display: none; }</style>", unsafe_allow_html=True)
+            </div>
+        """, unsafe_allow_html=True)
+
+        col1, col2 = st.columns([1, 1])
+        with col1:
+            st.button("↻ Retry", on_click=retry_game_callback)
+        with col2:
+            st.button("✖ Back to Menu", on_click=close_game_over_popup)
         return
 
+    # --- Game not started ---
     if not st.session_state.game_started:
         st.write("Welcome! Select your sequence type from the sidebar and click 'Start Game' to begin.")
         st.button("Start Game", on_click=start_game_callback)
-    else:
-        if not st.session_state.input_phase and not st.session_state.sequence_shown:
-            st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
-            st.session_state.feedback = ""
-            st.session_state.sequence_shown = True
-            st.session_state.display_step = 0
+        return
+
+    # --- Game in progress ---
+    if not st.session_state.input_phase and not st.session_state.sequence_shown:
+        st.session_state.sequence = generate_sequence(st.session_state.level, st.session_state.sequence_type)
+        st.session_state.sequence_shown = True
+        st.session_state.display_step = 0
+        st.rerun()
+
+    if st.session_state.sequence_shown:
+        output = display_sequence(st.session_state.sequence)
+        if output is not None:
+            if st.session_state.display_step < 3:
+                st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
+                time.sleep(1)
+                st.session_state.display_step += 1
+                st.rerun()
+            elif st.session_state.display_step == 3:
+                st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
+                time.sleep(len(st.session_state.sequence) * 0.8 + 1.5)
+                st.session_state.display_step += 1
+                st.rerun()
+        else:
+            st.session_state.sequence_shown = False
+            st.session_state.input_phase = True
+            st.session_state.user_input_widget = ""
             st.rerun()
 
-        if st.session_state.sequence_shown:
-            output = display_sequence(st.session_state.sequence)
-            if output is not None:
-                if st.session_state.display_step < 3:
-                    st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
-                    time.sleep(1)
-                    st.session_state.display_step += 1
-                    st.rerun()
-                elif st.session_state.display_step == 3:
-                    st.markdown(f"<div class='sequence-display'>{output}</div>", unsafe_allow_html=True)
-                    time.sleep(len(st.session_state.sequence) * 0.8 + 1.5)
-                    st.session_state.display_step += 1
-                    st.rerun()
-            else:
-                st.session_state.sequence_shown = False
-                st.session_state.input_phase = True
-                st.session_state.display_step = 0
-                st.session_state.user_input_widget = ""
-                st.rerun()
+    if st.session_state.input_phase:
+        placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
+        st.text_input("Enter the sequence:", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150)
+        st.button("Submit", on_click=handle_submit)
 
-        if st.session_state.input_phase:
-            placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
-            st.text_input("Enter the sequence :", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150)
-            st.button("Submit", on_click=handle_submit)
-
-        if st.session_state.feedback and not st.session_state.show_game_over_popup:
-            st.markdown(f"**{st.session_state.feedback}**")
+    if st.session_state.feedback and not st.session_state.show_game_over_popup:
+        st.markdown(f"**{st.session_state.feedback}**")
 
     st.button("Restart Game", on_click=reset_game_callback)
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
