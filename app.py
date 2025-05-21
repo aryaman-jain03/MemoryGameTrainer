@@ -4,7 +4,7 @@ from utils import generate_sequence # Ensure utils.py exists and has this functi
 
 # Set page config
 st.set_page_config(
-    page_title="🧠 Memory Game Trainer",
+    page_title="Memory Game Trainer",
     page_icon="🧠",
     layout="centered",
     initial_sidebar_state="expanded",
@@ -137,9 +137,9 @@ def handle_submit():
     if entered == correct:
         st.session_state.score += 10 * st.session_state.level
         st.session_state.level += 1
-        st.session_state.feedback = "🎉 Correct! Leveling up..."
+        st.session_state.feedback = "Correct! Leveling up..."
     else:
-        st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
+        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct)}"
         st.session_state.level = 1  # Reset level on incorrect answer
         st.session_state.score = 0  # Reset score on incorrect answer
 
@@ -180,12 +180,12 @@ def main():
     # Instructions
     with st.expander("📘 How to Play", expanded=True):
         st.markdown("""
-        1️⃣ A sequence of **numbers** or **words** will appear after a short countdown.  
-        2️⃣ **Memorize** the sequence quickly!  
-        3️⃣ After it disappears, **enter it exactly** in the text box below.  
-        4️⃣ Press **Submit** to check your answer.  
-        5️⃣ Correct? 🎉 Your score increases and the game gets harder.  
-        6️⃣ Wrong? ❌ Game resets. Try again and beat your best! 🧠✨
+        1️ A sequence of **numbers** or **words** will appear after a short countdown.  
+        2️ **Memorize** the sequence quickly!  
+        3️ After it disappears, **enter it exactly** in the text box below.  
+        4️ Press **Submit** to check your answer.  
+        5️ Correct? Your score increases and the game gets harder.  
+        6️ Wrong? Game resets. Try again and beat your best! 🧠✨
         """)
 
     st.sidebar.header("Settings")
@@ -193,9 +193,9 @@ def main():
     st.session_state.sequence_type = seq_type
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("Made with ❤️ by Your Assistant")
+    st.sidebar.markdown("Made by Aryaman Jain")
     # You'll want to replace this with your actual repo link
-    st.sidebar.markdown("[Source Code](https://github.com/your-repo)")
+    st.sidebar.markdown("[Source Code](https://github.com/aryaman-jain03/MemoryGameTrainer)")
 
     # Scoreboard
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
@@ -243,7 +243,7 @@ def main():
         )
 
         # Use on_click callback for submit button
-        st.button("✅ Submit", on_click=handle_submit)
+        st.button("Submit", on_click=handle_submit)
 
     else:
         # This message will appear when not in input phase AND not actively showing sequence.
@@ -257,7 +257,7 @@ def main():
         st.markdown(f"**{st.session_state.feedback}**")
 
     # Restart button - Use on_click callback here too!
-    st.button("🔄 Restart Game", on_click=reset_game_callback)
+    st.button("Restart Game", on_click=reset_game_callback)
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
