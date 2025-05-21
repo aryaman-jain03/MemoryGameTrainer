@@ -224,7 +224,7 @@ def main():
                 st.session_state.level = 1
                 st.session_state.score = 0
                 time.sleep(1.5)
-                st.experimental_rerun()
+                st.rerun()
 
     else:
         st.write("⏳ Please wait, sequence is being shown...")
@@ -236,7 +236,7 @@ def main():
     # Restart game button
     if st.button("🔄 Restart Game"):
         reset_game()
-        st.experimental_rerun()
+        st.rerun()
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
