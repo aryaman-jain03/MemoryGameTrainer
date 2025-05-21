@@ -200,7 +200,7 @@ def main():
                 st.session_state.input_phase = False
                 st.session_state.feedback = "🎉 Correct! Leveling up..."
                 time.sleep(1.2)
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.session_state.feedback = f"❌ Incorrect. Correct sequence was: {' '.join(correct)}"
                 st.session_state.input_phase = False
