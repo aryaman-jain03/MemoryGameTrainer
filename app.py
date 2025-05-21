@@ -173,17 +173,12 @@ def start_game_callback():
     reset_game_callback()
     st.session_state.game_started = True
 
-def close_game_over_popup():
-    st.session_state.show_game_over_popup = False
-    # Optionally also reset the score or navigate back to menu
-    # Example: st.session_state.page = "menu"
-
 def retry_game_callback():
-    st.session_state.show_game_over_popup = False
-    st.session_state.score = 0
-    # Reset game state, maybe go to 'game' screen again
-    # Example: st.session_state.page = "game"
+    reset_game_callback()
+    st.session_state.game_started = True
 
+def close_game_over_popup():
+    reset_game_callback()
 
 def reset_game_callback():
     for k, v in defaults.items():
@@ -221,7 +216,7 @@ def main():
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
 
     # --- Game Over Pop-up ---
-    if st.session_state.get("show_game_over_popup", False):
+    if st.session_state.show_game_over_popup:
         st.markdown(f"""
             <div class="popup-overlay">
                 <div class="popup-content">
@@ -230,43 +225,14 @@ def main():
                     <p>Your Final Score: {st.session_state.final_score}</p>
                 </div>
             </div>
-            <style>
-                .popup-overlay {{
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0, 0, 0, 0.6);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 9999;
-                }}
-                .popup-content {{
-                    background-color: #222;
-                    padding: 30px;
-                    border-radius: 10px;
-                    position: relative;
-                    color: white;
-                    text-align: center;
-                }}
-            </style>
         """, unsafe_allow_html=True)
-
-        # Workaround close button
-        col0, col1, col2 = st.columns([10, 1, 1])
-        with col1:
-            st.button("✖", on_click=close_game_over_popup)
 
         col1, col2 = st.columns([1, 1])
         with col1:
             st.button("↻ Retry", on_click=retry_game_callback)
         with col2:
-            st.button("🏠 Back to Menu", on_click=close_game_over_popup)
-
-
-            return
+            st.button("✖ Back to Menu", on_click=close_game_over_popup)
+        return
 
     # --- Game not started ---
     if not st.session_state.game_started:
@@ -313,3 +279,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
