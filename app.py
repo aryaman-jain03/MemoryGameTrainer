@@ -148,60 +148,35 @@ for k, v in defaults.items():
 
 # --- Game logic handlers ---
 def handle_submit():
+    # Get the raw user input
     user_raw_input = st.session_state.user_input_widget.strip()
     
-    # Generate correct_sequence as a list of strings, ready for comparison
-    # It's crucial that st.session_state.sequence holds the original numbers/words
-    correct_sequence_for_comparison = [str(item).lower() for item in st.session_state.sequence] 
+    # Get the correct sequence (always a list of strings), ensuring consistency
+    correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
     
     entered_sequence = []
-    input_is_valid = True
-
     if st.session_state.sequence_type == "Numbers":
-        # For numbers, split by space, then try to convert each part to string representation of int
-        # This handles both single and multi-digit numbers like "1 5 9" or "10 2 5"
-        parts = user_raw_input.split()
-        try:
-            for part in parts:
-                # Attempt to convert to int and then back to str to ensure it's a valid number
-                entered_sequence.append(str(int(part))) 
-        except ValueError:
-            input_is_valid = False
-            st.session_state.feedback = "Invalid input for numbers. Please enter digits only, separated by spaces."
-    else: # Words
-        # This part was already robust
-        entered_sequence = user_raw_input.lower().replace(",", " ").split()
-        # Filter out any empty strings that might result from multiple spaces or leading/trailing spaces
-        entered_sequence = [word for word in entered_sequence if word]
+        # For numbers, treat the entire input as a string and split into characters
+        # This assumes single-digit numbers. E.g., "123" becomes ['1', '2', '3']
+        entered_sequence = list(user_raw_input) 
+        
+    else: # For Words
+        # For words, split by spaces, handle commas, convert to lowercase
+        entered_sequence = user_raw_input.lower().replace(",", " ").split() 
 
-    if not input_is_valid:
-        # If input was invalid, handle feedback and reset game state
-        st.session_state.final_score = st.session_state.score # Save score BEFORE reset
-        st.session_state.show_game_over_popup = True           # Trigger game over popup
-        st.session_state.level = 1
-        st.session_state.score = 0
-        st.session_state.input_phase = False
-        st.session_state.user_input_widget = ""
-        # No time.sleep() here, let Streamlit re-render the feedback/popup
-        return # Stop execution of this function
-
-    # Proceed with comparison only if input was valid
-    if entered_sequence == correct_sequence_for_comparison:
-        st.session_state.score += 10 * st.session_state.level
-        st.session_state.level += 1
-        st.session_state.feedback = "Correct! Leveling up..."
-        # Optionally, you can add a short delay here for the feedback to be visible
-        # time.sleep(0.8) 
+    # Compare the entered sequence with the correct sequence
+    if entered_sequence == correct_sequence:
+        st.session_state.score += 10 * st.session_state.level 
+        st.session_state.level += 1 
+        st.session_state.feedback = "Correct! Leveling up..." 
     else:
-        # Provide more specific feedback showing the correct sequence
-        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence_for_comparison)}"
-        st.session_state.final_score = st.session_state.score  # Save score BEFORE reset
-        st.session_state.show_game_over_popup = True           # Trigger game over popup
-        st.session_state.level = 1
-        st.session_state.score = 0
+        st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}" 
+        st.session_state.level = 1  # Reset level on incorrect answer 
+        st.session_state.score = 0  # Reset score on incorrect answer 
 
-    st.session_state.input_phase = False
-    st.session_state.user_input_widget = ""
+    st.session_state.input_phase = False # End input phase 
+    st.session_state.user_input_widget = "" # Clear the input field 
+    time.sleep(1.2) # A brief pause for feedback to be seen before next rerun 
  
 def start_game_callback():
     reset_game_callback()
