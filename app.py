@@ -202,23 +202,7 @@ def handle_submit():
 
     st.session_state.input_phase = False
     st.session_state.user_input_widget = ""
-    # Removed the time.sleep(1.2) at the end to prevent blocking.
-    # Streamlit will re-render naturally on state change.
-    st.rerun() # Ensure UI updates immediately after submission
-
-# ... (rest of your existing game logic handlers and main function) ...
-
-# --- Adjustments in main() function for placeholder text ---
-# Find this block in your main() function:
-# if st.session_state.input_phase:
-#     placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
-#     st.text_input("Enter the sequence:", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150)
-#     st.button("Submit", on_click=handle_submit)
-
-# Replace the 'placeholder_text' line with this:
-# (Leave the rest of the st.text_input call as is)
-
-
+ 
 def start_game_callback():
     reset_game_callback()
     st.session_state.game_started = True
