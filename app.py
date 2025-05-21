@@ -220,11 +220,27 @@ def main():
         st.markdown(f"""
             <div class="popup-overlay">
                 <div class="popup-content">
+                    <span class="close-button" onclick="window.location.reload()">×</span>
                     <h3>Game Over!</h3>
                     <p>Incorrect Answer.</p>
                     <p>Your Final Score: {st.session_state.final_score}</p>
                 </div>
             </div>
+            <style>
+                .close-button {{
+                    position: absolute;
+                    top: 10px;
+                    right: 15px;
+                    font-size: 24px;
+                    font-weight: bold;
+                    color: #ffffffaa;
+                    cursor: pointer;
+                    transition: color 0.3s;
+                }}
+                .close-button:hover {{
+                    color: red;
+                }}
+            </style>
         """, unsafe_allow_html=True)
 
         col1, col2 = st.columns([1, 1])
@@ -232,6 +248,7 @@ def main():
             st.button("↻ Retry", on_click=retry_game_callback)
         with col2:
             st.button("✖ Back to Menu", on_click=close_game_over_popup)
+
         return
 
     # --- Game not started ---
