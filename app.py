@@ -148,8 +148,8 @@ def handle_submit():
     # Rerun is automatically triggered after callback, no need for st.rerun() here
     time.sleep(1.2) # A brief pause for feedback to be seen before next rerun
 
-# Reset state function
-def reset_game():
+# Reset state function - Now used as an on_click callback
+def reset_game_callback():
     st.session_state.level = 1
     st.session_state.score = 0
     st.session_state.sequence = []
@@ -158,6 +158,7 @@ def reset_game():
     st.session_state.feedback = ""
     st.session_state.display_step = 0
     st.session_state.user_input_widget = "" # Clear the input widget content
+    # A rerun is automatically triggered after a callback
 
 # Display sequence based on display_step
 def display_sequence(seq):
@@ -241,7 +242,7 @@ def main():
             max_chars=150,
         )
 
-        # Use on_click callback to prevent StreamlitAPIException
+        # Use on_click callback for submit button
         st.button("✅ Submit", on_click=handle_submit)
 
     else:
@@ -255,10 +256,8 @@ def main():
     if st.session_state.feedback:
         st.markdown(f"**{st.session_state.feedback}**")
 
-    # Restart button
-    if st.button("🔄 Restart Game"):
-        reset_game()
-        st.rerun()
+    # Restart button - Use on_click callback here too!
+    st.button("🔄 Restart Game", on_click=reset_game_callback)
 
     st.markdown("<div class='footer'>Memory Game Trainer — Built with Streamlit</div>", unsafe_allow_html=True)
 
