@@ -215,6 +215,7 @@ def main():
 
     st.markdown(f"<div class='scoreboard'>Level: {st.session_state.level} | Score: {st.session_state.score}</div>", unsafe_allow_html=True)
 
+    # --- Game Over Pop-up ---
     if st.session_state.show_game_over_popup:
         st.markdown(f"""
             <div class="popup-overlay">
@@ -223,31 +224,9 @@ def main():
                     <h3>Game Over!</h3>
                     <p>Incorrect Answer.</p>
                     <p>Your Final Score: {st.session_state.final_score}</p>
-                    <p>This will close in <span id="countdown">5</span> seconds.</p>
                 </div>
             </div>
             <style>
-                .popup-overlay {{
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 1000;
-                }}
-                .popup-content {{
-                    background: #333;
-                    padding: 30px;
-                    border-radius: 10px;
-                    text-align: center;
-                    color: white;
-                    position: relative;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-                }}
                 .close-button {{
                     position: absolute;
                     top: 10px;
@@ -261,35 +240,7 @@ def main():
                 .close-button:hover {{
                     color: red;
                 }}
-                #countdown {{
-                    font-weight: bold;
-                    color: #FFD700; /* Gold color for countdown */
-                }}
             </style>
-            <script>
-                let countdownElement = document.getElementById('countdown');
-                let timeLeft = 5;
-
-                function updateCountdown() {{
-                    countdownElement.innerText = timeLeft;
-                    timeLeft--;
-
-                    if (timeLeft < 0) {{
-                        // This will trigger a Streamlit rerun, effectively closing the popup
-                        // by re-evaluating the Python script and hiding the popup.
-                        // This is a common way to communicate back from JS to Streamlit for UI changes.
-                        // You might need a more robust way to trigger a Streamlit state change
-                        // if st.experimental_rerun() is not desired or if you want to avoid page reload.
-                        // For now, let's assume a simple page reload is acceptable.
-                        window.location.reload(); 
-                        // Alternatively, if you have a mechanism to set Streamlit state from JS,
-                        // you would use that here to set st.session_state.show_game_over_popup = False
-                    }} else {{
-                        setTimeout(updateCountdown, 1000);
-                    }}
-                }}
-                setTimeout(updateCountdown, 1000); // Start countdown after 1 second
-            </script>
         """, unsafe_allow_html=True)
 
         col1, col2 = st.columns([1, 1])
@@ -297,7 +248,8 @@ def main():
             st.button("↻ Retry", on_click=retry_game_callback)
         with col2:
             st.button("✖ Back to Menu", on_click=close_game_over_popup)
-            return
+
+        return
 
     # --- Game not started ---
     if not st.session_state.game_started:
