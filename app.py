@@ -261,7 +261,7 @@ def main():
     # Input phase
     if st.session_state.input_phase:
         st.text_input(
-            "Enter the sequence (space-separated):",
+            "Enter the sequence :",
             value=st.session_state.user_input_widget,
             placeholder="Type your sequence here...",
             key="user_input_widget", # This key binds the input to st.session_state.user_input_widget
