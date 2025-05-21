@@ -1,6 +1,6 @@
 import streamlit as st
 import time
-from utils import generate_sequence # Ensure utils.py exists and has this function [cite: 31]
+from utils import generate_sequence # Ensure utils.py exists and has this function
 
 # Set page config
 st.set_page_config(
@@ -141,7 +141,7 @@ st.markdown(
     }
 
     /* Target buttons specifically within the popup content */
-    .popup-content .stButton > button {
+    .popup-buttons-container .stButton > button {
         width: auto; /* Override full width for pop-up button */
         padding: 0.8rem 2rem;
         font-size: 1.1rem;
@@ -149,7 +149,7 @@ st.markdown(
         display: inline-block; /* Allow buttons to be side-by-side */
     }
 
-    .close-button {
+    .close-button-html {
         position: absolute;
         top: 10px;
         right: 15px;
@@ -164,7 +164,7 @@ st.markdown(
         transition: opacity 0.2s ease;
     }
 
-    .close-button:hover {
+    .close-button-html:hover {
         opacity: 1;
         color: #ffe600;
     }
@@ -314,16 +314,18 @@ def main():
     # --- Game Over Pop-up (Conditionally rendered) ---
     if st.session_state.show_game_over_popup:
         # Create a full-screen overlay for the pop-up effect
-        with st.container():
+        # Using st.empty() as a placeholder to inject content for the pop-up
+        popup_placeholder = st.empty()
+        with popup_placeholder.container():
             st.markdown(
                 f"""
                 <div class="popup-overlay">
                     <div class="popup-content">
-                        <button class="close-button" onclick="window.parent.document.querySelector('[data-testid=\"stButton\"][key=\"hidden_close_popup_btn\"] > button').click();">&times;</button>
+                        <button class="close-button-html" onclick="window.parent.document.querySelector('[data-testid=\"stButton\"][key=\"_hidden_close_popup_btn\"] > button').click();">&times;</button>
                         <h3>Game Over!</h3>
                         <p>Incorrect Answer.</p>
                         <p>Your Final Score: {st.session_state.final_score}</p>
-                        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px;">
+                        <div class="popup-buttons-container">
                             {st.button("Retry", on_click=retry_game_callback, key="popup_retry_btn")}
                         </div>
                     </div>
@@ -331,9 +333,9 @@ def main():
                 """,
                 unsafe_allow_html=True
             )
-            # A hidden Streamlit button to trigger the close_game_over_popup callback
-            st.button("Hidden Close Popup", on_click=close_game_over_popup, key="hidden_close_popup_btn")
-            st.markdown("<style>#hidden_close_popup_btn { display: none; }</style>", unsafe_allow_html=True)
+            # The hidden Streamlit button that the HTML cross button will click
+            st.button("Hidden Close Popup Button", on_click=close_game_over_popup, key="_hidden_close_popup_btn")
+            st.markdown("<style>#_hidden_close_popup_btn { display: none; }</style>", unsafe_allow_html=True) # Hide it
 
         # Prevent the rest of the app from rendering while the popup is active
         return # Exit main() if popup is active
