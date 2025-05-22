@@ -246,6 +246,9 @@ def reset_game_callback():
     for k, v in defaults.items():
         st.session_state[k] = v
 
+def toggle_mute_callback():
+    st.session_state.muted = not st.session_state.muted
+
 def display_sequence(seq):
     step = st.session_state.display_step
     if step < 3:
@@ -272,8 +275,8 @@ def main():
     st.sidebar.header("Settings")
     st.session_state.sequence_type = st.sidebar.radio("Choose sequence type:", ("Numbers", "Words"), key="seq_type_radio")
     # Mute/Unmute toggle
-    if st.sidebar.button("🔇 Mute" if not st.session_state.muted else "🔊 Unmute"):
-        st.session_state.muted = not st.session_state.muted
+    mute_label = "Mute" if not st.session_state.muted else "Unmute"
+    st.sidebar.button(mute_label, on_click=toggle_mute_callback, key="mute_button")
     st.sidebar.markdown(f"**Sound:** {'Muted' if st.session_state.muted else 'On'}")
     st.sidebar.markdown("---")
     st.sidebar.markdown("Made by Aryaman Jain")
