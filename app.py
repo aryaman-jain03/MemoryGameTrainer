@@ -192,7 +192,6 @@ def handle_submit():
     user_raw_input = st.session_state.user_input_widget.strip()
     correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
 
-    entered_sequence = []
     if st.session_state.sequence_type == "Numbers":
         entered_sequence = list(user_raw_input) 
     else:
@@ -204,16 +203,17 @@ def handle_submit():
         st.session_state.feedback = "Correct! Leveling up..." 
         st.session_state.input_phase = False
         st.session_state.user_input_widget = ""
-        play_sound("correct.wav")  # ✅ Play correct sound
-        time.sleep(1.2)
+        play_sound("correct.wav")  # Play correct sound
     else:
         st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}"
         st.session_state.final_score = st.session_state.score
         st.session_state.show_game_over_popup = True
         st.session_state.input_phase = False
         st.session_state.user_input_widget = ""
-        play_sound("wrong.wav")  # ✅ Play wrong sound
-        time.sleep(1.2)
+        play_sound("wrong.wav")  # Play wrong sound
+
+    # No time.sleep here!
+
 
     st.session_state.input_phase = False # End input phase 
     st.session_state.user_input_widget = "" # Clear the input field 
