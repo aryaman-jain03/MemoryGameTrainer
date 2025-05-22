@@ -271,8 +271,20 @@ def main():
 
     if st.session_state.input_phase:
         placeholder_text = "Type your sequence here (no spaces for numbers)" if st.session_state.sequence_type == "Numbers" else "Type your sequence here (space-separated for words)"
-        st.text_input("Enter the sequence:", value=st.session_state.user_input_widget, placeholder=placeholder_text, key="user_input_widget", max_chars=150)
-        st.button("Submit", on_click=handle_submit)
+        user_input = st.text_input(
+            "Enter the sequence:",
+            value=st.session_state.user_input_widget,
+            placeholder=placeholder_text,
+            key="temp_input_value",
+            max_chars=150
+        )
+
+        def handle_submit_wrapper():
+            st.session_state.user_input_widget = st.session_state.temp_input_value
+            handle_submit()
+
+        st.button("Submit", on_click=handle_submit_wrapper)
+
 
     if st.session_state.feedback and not st.session_state.show_game_over_popup:
         st.markdown(f"**{st.session_state.feedback}**")
