@@ -20,13 +20,8 @@ def play_sound(sound_file_path):
 def play_countdown_sound():
     with open("countdown.wav", "rb") as f:
         data = f.read()
-    b64 = base64.b64encode(data).decode()
-    md = f"""
-    <audio autoplay style="display:none;">
-        <source src="data:audio/wav;base64,{b64}" type="audio/wav">
-    </audio>
-    """
-    st.markdown(md, unsafe_allow_html=True)
+    st.audio(data, format="audio/wav", start_time=0)
+
 
 # Page config
 st.set_page_config(
@@ -306,7 +301,6 @@ def main():
             if st.session_state.display_step < 3:
                 st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
                 play_countdown_sound()
-                time.sleep(1)
                 st.session_state.display_step += 1
                 st.rerun()
             elif st.session_state.display_step == 3:
