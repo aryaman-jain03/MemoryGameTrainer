@@ -88,10 +88,34 @@ h1 {
     transition: background 0.3s ease;
     width: 100%;
 }
+            /* Keep the shape and colors even when button is disabled */
+.stButton>button:disabled {
+    background: linear-gradient(90deg, #ffbb33, #ff8800) !important;
+    color: #fff !important;
+    border-radius: 50px !important;
+    box-shadow: 0 3px 10px rgba(255,136,0,0.7) !important;
+    opacity: 0.7;  /* Slightly faded to indicate disabled, adjust if needed */
+    cursor: not-allowed;
+}
+
+/* Optional: style button on focus and active */
+.stButton>button:focus,
+.stButton>button:active {
+    outline: none;
+    box-shadow: 0 0 12px #ffb800cc;
+    background: linear-gradient(90deg, #ff8800, #ffbb33);
+    cursor: pointer;
+}
+
 .stButton>button:hover {
     background: linear-gradient(90deg, #ff8800, #ffbb33);
     cursor: pointer;
 }
+            .stButton>button:hover:not(:disabled) {
+    background: linear-gradient(90deg, #ff8800, #ffbb33);
+    cursor: pointer;
+}
+
 .stTextInput>div>input {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
