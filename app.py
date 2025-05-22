@@ -224,7 +224,7 @@ def handle_submit():
 
     st.session_state.input_phase = False # End input phase 
     st.session_state.user_input_widget = "" # Clear the input field 
-    time.sleep(1.2) # A brief pause for feedback to be seen before next rerun 
+    #time.sleep(1.2) # A brief pause for feedback to be seen before next rerun 
  
 def start_game_callback():
     reset_game_callback()
