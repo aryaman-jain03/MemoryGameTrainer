@@ -17,7 +17,16 @@ def play_sound(sound_file_path):
     """
     st.markdown(md, unsafe_allow_html=True)
 
-
+def play_countdown_sound():
+    with open("countdown.wav", "rb") as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    md = f"""
+    <audio autoplay style="display:none;">
+        <source src="data:audio/wav;base64,{b64}" type="audio/wav">
+    </audio>
+    """
+    st.markdown(md, unsafe_allow_html=True)
 
 # Page config
 st.set_page_config(
@@ -212,8 +221,6 @@ def handle_submit():
         st.session_state.user_input_widget = ""
         play_sound("wrong.wav")  # Play wrong sound
 
-    # No time.sleep here!
-
 
     st.session_state.input_phase = False # End input phase 
     st.session_state.user_input_widget = "" # Clear the input field 
@@ -298,6 +305,7 @@ def main():
         if output is not None:
             if st.session_state.display_step < 3:
                 st.markdown(f"<h4>{output}</h4>", unsafe_allow_html=True)
+                play_countdown_sound()
                 time.sleep(1)
                 st.session_state.display_step += 1
                 st.rerun()
