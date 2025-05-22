@@ -243,7 +243,13 @@ def close_game_over_popup():
     reset_game_callback()
 
 def reset_game_callback():
+    persistent_keys = ["muted"]
+    preserved = {k: st.session_state.get(k) for k in persistent_keys}
+    
     for k, v in defaults.items():
+        st.session_state[k] = v
+
+    for k, v in preserved.items():
         st.session_state[k] = v
 
 def toggle_mute_callback():
