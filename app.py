@@ -2,6 +2,23 @@ import streamlit as st
 import time
 from utils import generate_sequence  # Ensure utils.py exists and works
 
+import base64
+import base64
+
+def play_sound(sound_file_path):
+    """Plays a sound by embedding it in HTML using base64 encoding."""
+    with open(sound_file_path, "rb") as f:
+        data = f.read()
+    b64 = base64.b64encode(data).decode()
+    md = f"""
+    <audio autoplay>
+        <source src="data:audio/wav;base64,{b64}" type="audio/wav">
+    </audio>
+    """
+    st.markdown(md, unsafe_allow_html=True)
+
+
+
 # Page config
 st.set_page_config(
     page_title="Memory Game Trainer",
@@ -150,7 +167,7 @@ for k, v in defaults.items():
 def handle_submit():
     user_raw_input = st.session_state.user_input_widget.strip()
     correct_sequence = [str(item).lower() for item in st.session_state.sequence] 
-    
+
     entered_sequence = []
     if st.session_state.sequence_type == "Numbers":
         entered_sequence = list(user_raw_input) 
@@ -163,6 +180,7 @@ def handle_submit():
         st.session_state.feedback = "Correct! Leveling up..." 
         st.session_state.input_phase = False
         st.session_state.user_input_widget = ""
+        play_sound("correct.wav")  # ✅ Play correct sound
         time.sleep(1.2)
     else:
         st.session_state.feedback = f"Incorrect. Correct sequence was: {' '.join(correct_sequence)}"
@@ -170,7 +188,8 @@ def handle_submit():
         st.session_state.show_game_over_popup = True
         st.session_state.input_phase = False
         st.session_state.user_input_widget = ""
- 
+        play_sound("wrong.wav")  # ✅ Play wrong sound
+        time.sleep(1.2)
 
     st.session_state.input_phase = False # End input phase 
     st.session_state.user_input_widget = "" # Clear the input field 
