@@ -282,6 +282,8 @@ def main():
         def handle_submit_wrapper():
             st.session_state.user_input_widget = st.session_state.temp_input_value
             handle_submit()
+            st.session_state.temp_input_value = ""  # Clear text input after submit
+
 
         st.button("Submit", on_click=handle_submit_wrapper)
 
