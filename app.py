@@ -6,7 +6,8 @@ import base64
 import base64
 
 def play_sound(sound_file_path):
-    """Plays a sound by embedding it in HTML using base64 encoding."""
+    if st.session_state.muted:
+        return
     with open(sound_file_path, "rb") as f:
         data = f.read()
     b64 = base64.b64encode(data).decode()
@@ -18,6 +19,8 @@ def play_sound(sound_file_path):
     st.markdown(md, unsafe_allow_html=True)
 
 def play_countdown_sound():
+    if st.session_state.muted:
+        return
     with open("countdown.wav", "rb") as f:
         data = f.read()
     b64 = base64.b64encode(data).decode()
@@ -27,6 +30,7 @@ def play_countdown_sound():
     </audio>
     """
     st.markdown(md, unsafe_allow_html=True)
+
 
 # Page config
 st.set_page_config(
@@ -191,6 +195,7 @@ defaults = {
     "game_started": False,
     "show_game_over_popup": False,
     "final_score": 0,
+    "muted": False
 }
 for k, v in defaults.items():
     if k not in st.session_state:
@@ -266,6 +271,10 @@ def main():
 
     st.sidebar.header("Settings")
     st.session_state.sequence_type = st.sidebar.radio("Choose sequence type:", ("Numbers", "Words"), key="seq_type_radio")
+    # Mute/Unmute toggle
+    if st.sidebar.button("🔇 Mute" if not st.session_state.muted else "🔊 Unmute"):
+        st.session_state.muted = not st.session_state.muted
+    st.sidebar.markdown(f"**Sound:** {'Muted' if st.session_state.muted else 'On'}")
     st.sidebar.markdown("---")
     st.sidebar.markdown("Made by Aryaman Jain")
     st.sidebar.markdown("[Source Code](https://github.com/aryaman-jain03/MemoryGameTrainer)")
